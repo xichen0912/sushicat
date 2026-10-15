@@ -73,7 +73,7 @@ The built-in **Record performance** button saves `Recordings/<session>/performan
 - Interactions: snap at water/log, green touch box for P3, fist as an optional alternative.
 - Walking: lighter tracker launch, stale-pose limit 0.7 s, forward sensitivity 0.75, smoothing 3.5, stance tolerance 0.3, minimum walking pace 60%, accurate "hand not detected" status.
 - Steering: P2 un-mirrored; editor validation updated to match.
-- Look: city celebration leap back to start, ballet dress at the start and suit for the dance (CityGen menu **Dress Elephant (casual start outfit)**), finish music slot, follow camera lowered, UI decluttered (preview button removed, simulation panel hidden, course panel collapsible).
+- Look: city celebration leap back to start, ballet dress at the start and suit for the dance (CityGen menu **Dress Elephant (casual start outfit)**), finish music slot, follow camera lowered, UI decluttered (simulation panel hidden, course panel collapsible). The on-screen "Preview: dusk + dance (F)" button toggles the finish preview, same as the F key.
 
 ## What we actually verified
 

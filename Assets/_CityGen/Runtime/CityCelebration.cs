@@ -336,5 +336,11 @@ namespace CityGen
             HighFollowCamera.Orbit = false;
         }
 
+        // On-screen toggle for the finish preview (same as pressing F): dusk, fireworks, music and the dance.
+        void OnGUI()
+        {
+            string label = preview ? "End preview (F)" : "Preview: dusk + dance (F)";
+            if (GUI.Button(new Rect(Screen.width * .5f - 120, 136, 240, 28), label)) preview = !preview;
+        }
     }
 }
