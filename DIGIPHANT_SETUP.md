@@ -87,7 +87,16 @@ Not yet verified: a complete three-person run with the final build, and the edit
 
 ## Fresh-checkout reconstruction test
 
-_Result to be filled in after the test._
+Done on 2026-10-15 in a separate folder, leaving the working project untouched.
+
+1. Cloned this repository into an empty folder.
+2. Ran `python3 tools/restore_starter.py`. It used a clone of the starter at the pinned commit, verified 124 starter fingerprints, restored `Assets/Elephant`, copied the adapted Python, downloaded the segmenter and cup models (checksums matched), created `.venv` and installed `requirements.txt`. Result: `RESTORE_OK`; `pip check` reported no broken requirements.
+3. Ran `python3 tools/check_project.py`. Result: `STATIC_OK` (566 unique GUIDs, 10 locked material imports, 3 locked runtime patches).
+4. Checked every asset reference in the performance scene: 349 of 353 resolve to files in `Assets/`, 2 are Unity's built-in resources and 2 come from the URP packages that Unity installs from `Packages/manifest.json`.
+
+Fixed during the test: the first attempt failed to download the models because python.org Python on macOS had no CA certificates. `restore_starter.py` now falls back to `curl`.
+
+Not checked in the fresh copy: opening it in Unity, live camera tracking, and the optional fist model, which the restore script does not download.
 
 ## Known limitations
 
