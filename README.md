@@ -11,7 +11,7 @@ Three people steer one digital elephant through a city course using upper-body p
 Contributions:
 
 - **Xinru Lu**: project planning, early code experiments
-- **Ge Huang**: core code
+- **Ge Huang**: core code, code iteration
 - **Xi Chen**: city build, code refinement and polish
 
 ## Links
