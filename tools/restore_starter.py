@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import urllib.error
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +20,18 @@ FIST_MODEL_URL = ('https://storage.googleapis.com/mediapipe-models/gesture_recog
 
 def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def download(url, target):
+    """urllib first; fall back to the system curl when Python has no CA bundle
+    (common with python.org builds on macOS before Install Certificates.command)."""
+    try:
+        urllib.request.urlretrieve(url, target)
+    except urllib.error.URLError as error:
+        if shutil.which('curl') is None:
+            raise
+        print(f'urllib download failed ({error.reason}); retrying with curl.', flush=True)
+        subprocess.run(['curl', '-fsSL', '-o', str(target), url], check=True)
 
 
 def copy_missing(source, target):
@@ -68,7 +81,7 @@ def main():
         if args.segmenter_model:
             shutil.copy2(args.segmenter_model, temp)
         else:
-            urllib.request.urlretrieve(MODEL_URL, temp)
+            download(MODEL_URL, temp)
         if sha256(temp) != model_lock['sha256']:
             temp.unlink()
             raise RuntimeError('Model at upstream latest has changed. Restore the pinned checksum model or review a new version.')
@@ -94,7 +107,7 @@ def main():
                 print('WARNING: cup detector model is absent; cup diagnostics are disabled for this restore.')
                 temp = None
             else:
-                urllib.request.urlretrieve(CUP_MODEL_URL, temp)
+                download(CUP_MODEL_URL, temp)
             if temp is not None and (temp.stat().st_size != cup_lock['bytes'] or sha256(temp) != cup_lock['sha256']):
                 raise RuntimeError('Cup detector size/checksum differs from the pinned model; no model was installed.')
             if temp is not None:
