@@ -8,7 +8,11 @@ Three people steer one digital elephant through a city course using upper-body p
 | P2 | Xi Chen | Shoulder tilt | Steering (lean left, turn left) |
 | P3 | Ge Huang | Head turn, right hand, left arm, reach into the green box | Head, trunk, ears; drinking and log pickup |
 
-Behind the scenes: Xinru Lu (planning, system design), Ge Huang (core code), Xi Chen (city build, polish code).
+Contributions:
+
+- **Xinru Lu**: project planning, early code experiments
+- **Ge Huang**: core code
+- **Xi Chen**: city build, code refinement and polish
 
 ## Links
 
