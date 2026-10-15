@@ -1,0 +1,268 @@
+using System;
+using System.IO;
+using System.Linq;
+using DigiPhant;
+using StudentStarter.Savannah;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
+
+namespace StudentWork.Editor
+{
+    // Explicit menu command only: opening the project never changes a scene automatically.
+    public static class TeamSceneSetup
+    {
+        public const string ReferenceScene = "Assets/DigiPhant/Scenes/DigiPhant.unity";
+        public const string TeamScene = "Assets/StudentWork/Scenes/TeamPerformance.unity";
+        const string StudentPipeline = "Assets/StudentWork/Settings/TeamURP.asset";
+        const string StudentRenderer = "Assets/StudentWork/Settings/TeamURP_Renderer.asset";
+        const string SuppliedPipeline = "Assets/Elephant/UniversalRenderPipelineAsset.asset";
+        const string SuppliedRenderer = "Assets/Elephant/UniversalRenderPipelineAsset_Renderer.asset";
+        const string RuntimeRoot = "Student Work Runtime";
+
+        [MenuItem("Student Work/Prepare Team Scene")]
+        public static void PrepareTeamScene()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                throw new InvalidOperationException("Stop Play mode before preparing the team scene.");
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+                throw new InvalidOperationException("Exit Prefab Mode before preparing the team scene.");
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            EnsureFolder("Assets/StudentWork/Scenes");
+            EnsureFolder("Assets/StudentWork/Settings");
+            EnsureUniversalPipeline();
+
+            bool isNew = !File.Exists(TeamScene);
+            if (isNew)
+            {
+                if (!AssetDatabase.LoadAssetAtPath<SceneAsset>(ReferenceScene))
+                    throw new FileNotFoundException("The supplied DigiPhant reference scene is missing.", ReferenceScene);
+                if (!AssetDatabase.CopyAsset(ReferenceScene, TeamScene))
+                    throw new IOException("Could not duplicate the reference scene; the reference was not changed.");
+            }
+            var scene = EditorSceneManager.OpenScene(TeamScene, OpenSceneMode.Single);
+            var controls = ComponentsInScene<DigiPhantController>(scene).ToArray();
+            if (controls.Length != 1)
+                throw new InvalidOperationException("Team scene must contain exactly one DigiPhantController. Existing objects were preserved.");
+            var controller = controls[0];
+            var locomotion = controller.GetComponent<DigiPhantLocomotion>();
+            if (!locomotion || !locomotion.travelRoot)
+                throw new InvalidOperationException("The scene has no complete DigiPhant locomotion setup. Restore the supplied reference in a fresh copy.");
+
+            if (isNew)
+            {
+                // The supplied reference is a three-performer, full-body scene. Keep its mappings.
+                if (controller.performerCount != 3 || controller.upperBodyOnly)
+                    throw new InvalidOperationException("The reference was changed from its three-person/full-body preset. No role mappings were reset; inspect the new scene.");
+                Undo.RecordObject(locomotion, "Set fresh-project travel boundary");
+                // The 15-unit template stage would block much of this 60 x 60 course.
+                // Keep a finite boundary. This adjustment is made only in the new student copy.
+                if (locomotion.stageRadius > 0 && locomotion.stageRadius < SavannahCourseGenerator.RequiredTravelRadius)
+                    locomotion.stageRadius = SavannahCourseGenerator.RequiredTravelRadius;
+                EditorUtility.SetDirty(locomotion);
+                DeactivateTemplateGround(scene);
+                EditorSceneManager.MarkSceneDirty(scene);
+                if (!EditorSceneManager.SaveScene(scene)) throw new IOException("Could not save the duplicated team scene.");
+            }
+
+            var courseRoots = scene.GetRootGameObjects().Where(IsCourseRoot).ToArray();
+            if (courseRoots.Length > 1)
+                throw new InvalidOperationException("Multiple course roots were found. Resolve the duplicate roots before continuing.");
+            if (courseRoots.Length == 1 && courseRoots[0].name != SavannahCourseGenerator.RootName)
+                throw new InvalidOperationException("The scene contains an earlier course layout. It was preserved; use the supplied Savannah regeneration menu deliberately before preparing the layout-4 logger.");
+            string injectionBackup = null;
+            if (courseRoots.Length == 0)
+            {
+                // The public generator creates a uniquely named *_BeforeSavannah scene backup.
+                // Existing courses are not regenerated by this menu, preserving student edits.
+                SavannahCourseGenerator.InjectIntoOpenScene();
+                courseRoots = scene.GetRootGameObjects().Where(g => g.name == SavannahCourseGenerator.RootName).ToArray();
+                injectionBackup = SavannahCourseGenerator.LastBackupPath;
+            }
+            if (courseRoots.Length != 1)
+                throw new InvalidOperationException("Course injection did not produce one layout-4 course root.");
+            Transform course = courseRoots[0].transform;
+
+            var loggers = ComponentsInScene<SimulationTelemetryLogger>(scene).ToArray();
+            if (loggers.Length > 1)
+                throw new InvalidOperationException("Multiple simulation loggers were found. Existing loggers were preserved.");
+            if (loggers.Length == 0)
+            {
+                var centreline = ReadRouteCentreline(course);
+                var landmarks = ReadLandmarkZones(course);
+                var root = scene.GetRootGameObjects().SingleOrDefault(g => g.name == RuntimeRoot);
+                if (!root)
+                {
+                    root = new GameObject(RuntimeRoot);
+                    SceneManager.MoveGameObjectToScene(root, scene);
+                    Undo.RegisterCreatedObjectUndo(root, "Add student runtime root");
+                }
+                var logger = Undo.AddComponent<SimulationTelemetryLogger>(root);
+                logger.controller = controller;
+                logger.locomotion = locomotion;
+                logger.travelRoot = locomotion.travelRoot;
+                logger.routeAnchor = course;
+                logger.routeLocalPoints = centreline;
+                logger.landmarkZones = landmarks;
+                logger.setupSourceScene = ReferenceScene;
+                logger.courseBackupScene = injectionBackup;
+                EditorUtility.SetDirty(logger);
+                loggers = new[] { logger };
+                EditorSceneManager.MarkSceneDirty(scene);
+                if (!EditorSceneManager.SaveScene(scene)) throw new IOException("Could not save the scene with the simulation logger.");
+            }
+            ValidateLoggerLocation(loggers[0], course);
+            AddTeamSceneToBuildSettings();
+            AssetDatabase.SaveAssets();
+            Selection.activeGameObject = controller.gameObject;
+            if (SceneView.lastActiveSceneView)
+                SceneView.lastActiveSceneView.Frame(new Bounds(locomotion.travelRoot.position, new Vector3(64, 8, 64)), false);
+            Debug.Log("TEAM_SCENE_READY: " + TeamScene + " | " + (isNew ? "fresh student copy prepared" : "existing scene opened; existing mappings, boundary, camera and logger settings preserved")
+                + " | source reference: " + ReferenceScene
+                + " | camera: " + (locomotion.followElephant && locomotion.followCamera ? "supplied fixed-offset follow enabled" : "inspect the existing camera setup")
+                + " | simulation logs are created only after Start simulation log in Play mode.");
+        }
+
+        [MenuItem("Student Work/Prepare Team Scene", true)]
+        static bool CanPrepare() => !EditorApplication.isPlayingOrWillChangePlaymode;
+
+        static System.Collections.Generic.IEnumerable<T> ComponentsInScene<T>(Scene scene) where T : Component
+            => scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<T>(true));
+
+        static void EnsureFolder(string path)
+        {
+            if (AssetDatabase.IsValidFolder(path)) return;
+            string parent = Path.GetDirectoryName(path).Replace('\\', '/');
+            EnsureFolder(parent);
+            if (string.IsNullOrEmpty(AssetDatabase.CreateFolder(parent, Path.GetFileName(path))))
+                throw new IOException("Could not create asset folder: " + path);
+        }
+
+        static void EnsureUniversalPipeline()
+        {
+            var effective = GraphicsSettings.currentRenderPipeline;
+            if (effective && !IsUniversal(effective))
+                throw new InvalidOperationException("An existing non-URP pipeline is active. This setup preserves it; select a URP pipeline in Project Settings before preparing this project.");
+            if (GraphicsSettings.defaultRenderPipeline)
+            {
+                if (!IsUniversal(GraphicsSettings.defaultRenderPipeline))
+                    throw new InvalidOperationException("The existing default pipeline is not URP. Select a URP default pipeline in Project Settings first.");
+                if (!Shader.Find("Universal Render Pipeline/Lit"))
+                    throw new InvalidOperationException("URP shaders are unavailable. Wait for the pinned Universal RP package to resolve, then retry.");
+                return;
+            }
+            if (!Shader.Find("Universal Render Pipeline/Lit"))
+                throw new InvalidOperationException("URP shaders are unavailable. Resolve com.unity.render-pipelines.universal in Package Manager before running this menu.");
+            if (effective)
+            {
+                // Preserve an active URP quality override and use it as the project default too.
+                GraphicsSettings.defaultRenderPipeline = effective;
+                return;
+            }
+            var pipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(StudentPipeline);
+            if (!pipeline)
+            {
+                if (File.Exists(StudentPipeline))
+                    throw new InvalidOperationException("The student pipeline file exists but cannot be loaded. Resolve package/import errors before retrying; it was not overwritten.");
+                var supplied = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(SuppliedPipeline);
+                var renderer = AssetDatabase.LoadAssetAtPath<ScriptableObject>(StudentRenderer);
+                if (!supplied || !IsUniversal(supplied))
+                    throw new InvalidOperationException("The supplied URP pipeline cannot be loaded. Check the imported Elephant assets and URP package.");
+                if (!renderer)
+                {
+                    if (File.Exists(StudentRenderer))
+                        throw new InvalidOperationException("The student renderer file exists but cannot be loaded. It was not overwritten.");
+                    if (!AssetDatabase.LoadAssetAtPath<ScriptableObject>(SuppliedRenderer)
+                        || !AssetDatabase.CopyAsset(SuppliedRenderer, StudentRenderer))
+                        throw new IOException("Could not duplicate the supplied URP renderer into StudentWork/Settings.");
+                    renderer = AssetDatabase.LoadAssetAtPath<ScriptableObject>(StudentRenderer);
+                }
+                if (!AssetDatabase.CopyAsset(SuppliedPipeline, StudentPipeline))
+                    throw new IOException("Could not duplicate the supplied URP pipeline into StudentWork/Settings.");
+                pipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(StudentPipeline);
+                if (!pipeline || !renderer)
+                    throw new InvalidOperationException("The copied URP assets did not import. Check Console errors before retrying.");
+                var settings = new SerializedObject(pipeline);
+                var renderers = settings.FindProperty("m_RendererDataList");
+                var defaultIndex = settings.FindProperty("m_DefaultRendererIndex");
+                if (renderers == null || !renderers.isArray || defaultIndex == null)
+                    throw new InvalidOperationException("The pinned URP version uses an unexpected renderer layout. The student copies were retained for inspection.");
+                renderers.arraySize = 1;
+                renderers.GetArrayElementAtIndex(0).objectReferenceValue = renderer;
+                defaultIndex.intValue = 0;
+                settings.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(pipeline);
+            }
+            var existingSettings = new SerializedObject(pipeline);
+            var list = existingSettings.FindProperty("m_RendererDataList");
+            var index = existingSettings.FindProperty("m_DefaultRendererIndex");
+            if (!IsUniversal(pipeline) || list == null || index == null || index.intValue < 0
+                || index.intValue >= list.arraySize || !list.GetArrayElementAtIndex(index.intValue).objectReferenceValue)
+                throw new InvalidOperationException("The student URP pipeline has no valid default renderer. Existing settings were preserved; inspect StudentWork/Settings.");
+            GraphicsSettings.defaultRenderPipeline = pipeline;
+            AssetDatabase.SaveAssets();
+            Debug.Log("TEAM_URP_CONFIGURED: student-owned copies of the supplied pipeline and renderer.");
+        }
+
+        static bool IsUniversal(RenderPipelineAsset asset) => asset && asset.GetType().Name.Contains("UniversalRenderPipelineAsset");
+
+        static bool IsCourseRoot(GameObject root) => root.name == SavannahCourseGenerator.RootName
+            || root.name == "Savannah Course [layout 1]" || root.name == "Savannah Course [layout 2]" || root.name == "Savannah Course [layout 3]";
+
+        static void DeactivateTemplateGround(Scene scene)
+        {
+            foreach (var root in scene.GetRootGameObjects())
+                if (root.name == "Stage" || root.name == "Stage distance grid (4 units)")
+                {
+                    Undo.RecordObject(root, "Hide template ground beneath savannah");
+                    root.SetActive(false);
+                }
+        }
+
+        static Vector3[] ReadRouteCentreline(Transform course)
+        {
+            var path = course.Find("Open path");
+            var mesh = path ? path.GetComponent<MeshFilter>() : null;
+            if (!mesh || !mesh.sharedMesh)
+                throw new InvalidOperationException("The course has no Open path mesh. No estimated route was substituted.");
+            var vertices = mesh.sharedMesh.vertices;
+            if (vertices.Length < 4 || vertices.Length % 2 != 0)
+                throw new InvalidOperationException("The course path mesh does not match the supplied paired-vertex centreline layout.");
+            var route = new Vector3[vertices.Length / 2];
+            for (int i = 0; i < route.Length; i++)
+                route[i] = course.InverseTransformPoint(path.TransformPoint((vertices[i * 2] + vertices[i * 2 + 1]) * .5f));
+            return route;
+        }
+
+        static LandmarkZone[] ReadLandmarkZones(Transform course)
+        {
+            var parent = course.Find("Landmarks (4, decorative)");
+            if (!parent || parent.childCount != 4)
+                throw new InvalidOperationException("The generated course must contain its four decorative landmarks.");
+            return Enumerable.Range(0, parent.childCount).Select(i => new LandmarkZone {
+                label = parent.GetChild(i).name, centre = parent.GetChild(i), radiusUnits = 4.5f
+            }).ToArray();
+        }
+
+        static void ValidateLoggerLocation(SimulationTelemetryLogger logger, Transform course)
+        {
+            if (logger.transform == course || logger.transform.IsChildOf(course))
+                throw new InvalidOperationException("Move the simulation logger outside the generated course root before reinjecting the course.");
+            if (!logger.controller || !logger.locomotion || !logger.travelRoot || !logger.routeAnchor
+                || logger.routeLocalPoints == null || logger.routeLocalPoints.Length < 2)
+                Debug.LogWarning("TEAM_LOGGER_CHECK: the existing logger has missing references. Its settings were preserved; inspect Student Work Runtime before logging.");
+        }
+
+        static void AddTeamSceneToBuildSettings()
+        {
+            var scenes = EditorBuildSettings.scenes.ToList();
+            int index = scenes.FindIndex(s => s.path == TeamScene);
+            if (index < 0) scenes.Insert(0, new EditorBuildSettingsScene(TeamScene, true));
+            else if (!scenes[index].enabled) scenes[index] = new EditorBuildSettingsScene(TeamScene, true);
+            EditorBuildSettings.scenes = scenes.ToArray();
+        }
+    }
+}

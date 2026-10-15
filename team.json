@@ -1,0 +1,23 @@
+{
+  "team_name": "sushicat",
+  "student_name": null,
+  "members": [
+    {
+      "performer_id": "P1",
+      "name": "Xinru Lu"
+    },
+    {
+      "performer_id": "P2",
+      "name": "Xi Chen"
+    },
+    {
+      "performer_id": "P3",
+      "name": "Ge Huang"
+    }
+  ],
+  "team_git_url": "https://github.com/xichen0806-spec/sushicat",
+  "team_drive_url": null,
+  "final_video_url": null,
+  "status": "final_build_compiled_reconstruction_test_pending_video_link_pending",
+  "student_id": null
+}

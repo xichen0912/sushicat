@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "status": "scaffold_only_uncollected_untrained",
+  "student_name": null,
+  "timezone": "Asia/Singapore",
+  "sample_manifest": "samples.jsonl",
+  "evaluation_file": "evaluation.csv",
+  "data_key_notes": "类别为可修改方案；当前没有真实样本、训练记录或测量结果。计数由验证脚本从实际样本清单与文件计算。",
+  "datasets": [
+    {
+      "id": "objects",
+      "task": "image_classification",
+      "teachable_machine_project_type": "Image",
+      "provenance": "pending_webcam_collection",
+      "collection": {
+        "camera": null,
+        "location": null,
+        "sessions": [],
+        "notes": null
+      },
+      "classes": [
+        {
+          "id": "bottle",
+          "name_zh": "水瓶",
+          "description": "单个水瓶，旋转并变化距离。",
+          "minimum_initial_training_samples": 50,
+          "recommended_test_samples": 10
+        },
+        {
+          "id": "book",
+          "name_zh": "书",
+          "description": "一本书，展示封面、背面和侧边。",
+          "minimum_initial_training_samples": 50,
+          "recommended_test_samples": 10
+        },
+        {
+          "id": "shoe",
+          "name_zh": "鞋",
+          "description": "单只鞋，展示侧面、鞋面和底部。",
+          "minimum_initial_training_samples": 50,
+          "recommended_test_samples": 10
+        },
+        {
+          "id": "spoon",
+          "name_zh": "勺子",
+          "description": "单把勺子，变化方向并记录反光干扰。",
+          "minimum_initial_training_samples": 50,
+          "recommended_test_samples": 10
+        }
+      ],
+      "training_rounds": [
+        {
+          "id": "initial",
+          "trained": false,
+          "trained_at": null,
+          "parameters": {
+            "epochs": null,
+            "batch_size": null,
+            "learning_rate": null
+          },
+          "export_directory": "models/objects/initial",
+          "shared_model_url": null,
+          "notes": null
+        },
+        {
+          "id": "retrained",
+          "trained": false,
+          "trained_at": null,
+          "parameters": {
+            "epochs": null,
+            "batch_size": null,
+            "learning_rate": null
+          },
+          "export_directory": "models/objects/retrained",
+          "shared_model_url": null,
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "poses",
+      "task": "pose_classification",
+      "teachable_machine_project_type": "Pose",
+      "provenance": "pending_webcam_collection",
+      "collection": {
+        "camera": null,
+        "location": null,
+        "sessions": [],
+        "notes": null
+      },
+      "classes": [
+        {
+          "id": "neutral",
+          "name_zh": "直立",
+          "description": "双臂自然放下，双脚正常站立。",
+          "minimum_initial_training_samples": 50,
+          "recommended_test_samples": 10
+        },
+        {
+          "id": "t_pose",
+          "name_zh": "T 形",
+          "description": "双臂水平张开，双腿站立。",
+          "minimum_initial_training_samples": 50,
+          "recommended_test_samples": 10
+        },
+        {
+          "id": "y_pose",
+          "name_zh": "Y 形",
+          "description": "双臂上举成 Y，双腿站立。",
+          "minimum_initial_training_samples": 50,
+          "recommended_test_samples": 10
+        },
+        {
+          "id": "squat",
+          "name_zh": "下蹲",
+          "description": "屈膝下蹲，双臂向前。",
+          "minimum_initial_training_samples": 50,
+          "recommended_test_samples": 10
+        },
+        {
+          "id": "side_lunge",
+          "name_zh": "侧弓步",
+          "description": "向右侧弓步，右膝弯曲、左腿伸直。",
+          "minimum_initial_training_samples": 50,
+          "recommended_test_samples": 10
+        }
+      ],
+      "training_rounds": [
+        {
+          "id": "initial",
+          "trained": false,
+          "trained_at": null,
+          "parameters": {
+            "epochs": null,
+            "batch_size": null,
+            "learning_rate": null
+          },
+          "export_directory": "models/poses/initial",
+          "shared_model_url": null,
+          "notes": null
+        },
+        {
+          "id": "retrained",
+          "trained": false,
+          "trained_at": null,
+          "parameters": {
+            "epochs": null,
+            "batch_size": null,
+            "learning_rate": null
+          },
+          "export_directory": "models/poses/retrained",
+          "shared_model_url": null,
+          "notes": null
+        }
+      ]
+    }
+  ]
+}

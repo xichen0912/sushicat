@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "starter_commit": "4e6dab5271c618d1c0bfb2022c41c0d37cd8d69f",
+  "patches": {
+    "Assets/DigiPhant/Runtime/DigiPhantController.cs": {
+      "original_sha256": "c337aab6cd67a6362276df87ab572ee71b5897419c80eb286be847c4d2bc1273",
+      "patched_sha256": "94cf61b3a9e720a5d2996d0a6f2d4ea798a9ae0f7dcf8e7b2e2dc38aca2bf82f",
+      "reason": "Reject inactive slots, expose exact mapped-input readiness and clear failed calibration. Reset omitted-slot presence independently of confidence threshold. Append optional left-arm/cup signals, independent ears, and serialized P3-only practice with team restoration. Add optional pose-derived head yaw and explicit upper-body speed/steering/head role preset with isolated solo role practice; gait owns leg and tail bones. Track optional camera session and assignment revisions; invalidate old neutral after reassignment/restart. Reject zero-confidence controls even at zero threshold. Stable-window median neutral calibration and bounded visual-only head occlusion grace. Optional regional diagnostics and fixed calibrated shoulder-scale hand geometry eliminate instantaneous width drift; geometry quality is included in mapped-input readiness. Regional brief role loss pauses immediately while retaining neutral until sustained loss; expose reset, raw input, neutral scale and cup association reasons for numeric diagnostics. Add captured-age and monotonic frame guards, multi-sample reverse evidence, calibrated standing-distance protection, wrist jump rejection, and Chinese safety status. Add optional MediaPipe Gesture Recognizer closed-fist fields and a safe TryReadFist API for wood pickup and water interaction. Show the post-countdown stable-window wait and its reason instead of a frozen 1-second countdown, stopping after 15 seconds with the failure reason. Send the upper-body solo practice role so the bridge tracks only that role's region. Add a runtime two-person upper-body team (P1 speed + P2 steering) whose empty P3 seat does not block calibration or group travel. Two-person team seating can also be P1 + P3 (water/log practice, P2 seat empty). In fixed upper-body seats, sustained loss pauses travel and keeps the neutral pose for the returning performer. 2026-10-12: P2 shoulder steering un-mirrored (weight -1); distinct status when P1 left wrist is not detected."
+    },
+    "Assets/DigiPhant/Runtime/DigiPhantLocomotion.cs": {
+      "original_sha256": "9cd760c11d8684db7f8aeb3d99486d25ae1759d34631dd7b8e4234e14477a39b",
+      "patched_sha256": "87c49c6dff415e3932c18ba91c42d37fdba1228f38aad85e27f3da8fc324af30",
+      "reason": "Stop group travel when a role is lost, require recalibration after sustained loss, and preserve inactive custom sources across count changes. Enforce P3 practice travel lock even when locomotion is externally enabled. Preserve P1/P2 solo travel-axis isolation in debug sliders as well as camera input. Add walk/run hysteresis and let low-speed gait rate scale without the old minimum that caused foot sliding. Add deliberate downward reverse threshold and hold in upper-body Camera mode, clearing pending confirmation on neutral or input loss. Expose desired/accepted throttle and pause reason for local diagnostics. Require fresh pose samples for reverse confirmation, expose evidence progress and measured world displacement, and show Chinese direction/safety feedback. Ignore movement sources whose two-person team seat is empty. 2026-10-12: minimumWalkFraction (default 0.6) so slow walking does not play the gait in slow motion."
+    },
+    "Assets/DigiPhant/Runtime/DigiPhantCameraPreview.cs": {
+      "original_sha256": "1e14785776a4c82cd49c704717f9281a503e59f332258258038ce127f4e9681a",
+      "patched_sha256": "d3dc99d2f4dd0373d2601a3f9dd3778df7ee039b4284c4db9c8372ead55e3166",
+      "reason": "Pass configured upper-body mode to the bridge and prefer the Python 3.12 compatible .venv312 camera environment, falling back to .venv. 2026-10-12: PreviewDrawn overlay event (P3 touch zone); lightweight bridge launch (--no-segmentation --no-cup-detection, optional --no-fist-detection)."
+    }
+  }
+}

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2fb7a9b5795409c90dfed94ae4fde20, type: 3}
+  m_Name: CityGenSettings
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::CityGen.EditorTools.CityGenSettings
+  seed: 1930
+  heightScale: 0.3
+  footprintScale: 0.5
+  litWindowRatio: 0.3
+  bayWidth: 3
+  fireEscapeChance: 0.6
+  waterTowerChance: 0.45
+  flagChance: 0.3
+  billboardCount: 12
+  spireFromFloors: 20
+  propScale: 0.35
+  lampSpacing: 7
+  hydrantSpacing: 16
+  binSpacing: 12
+  streetTreeSpacing: 11
+  taxiCount: 16
+  steamingManholes: 8

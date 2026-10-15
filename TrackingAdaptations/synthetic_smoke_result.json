@@ -1,0 +1,24 @@
+{
+  "verification": "synthetic image only; no camera or Unity runtime",
+  "model_name": "selfie_segmenter.tflite",
+  "model_bytes": 249537,
+  "model_labels": [
+    "selfie"
+  ],
+  "category_semantics": "person=0, implicit background=255",
+  "mediapipe_version": "0.10.35",
+  "numpy_version": "2.5.3",
+  "opencv_version": "4.14.0",
+  "mask_shape": [
+    256,
+    256
+  ],
+  "mask_dtype": "bool",
+  "foreground_occupancy": 0.0,
+  "first_sample_seconds": 0.0072,
+  "actual_samples": 2,
+  "held_sample_skips": 1,
+  "api": "ImageSegmenter.segment_for_video",
+  "status": "foreground 0.0% | target 5 Hz",
+  "overlay_png": "synthetic_segmentation_smoke.png"
+}

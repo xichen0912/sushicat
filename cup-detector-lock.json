@@ -1,0 +1,13 @@
+{
+  "model": "efficientdet_lite0.tflite",
+  "task": "MediaPipe ObjectDetector",
+  "architecture": "EfficientDet Lite0",
+  "dataset": "COCO",
+  "version": "int8/1",
+  "category_allowlist": [
+    "cup"
+  ],
+  "url": "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite",
+  "sha256": "0720bf247bd76e6594ea28fa9c6f7c5242be774818997dbbeffc4da460c723bb",
+  "bytes": 4602795
+}

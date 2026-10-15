@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/StudentWork/Scenes/UpperBodyThreePersonCourse.unity
+    guid: 0d4bf26fde27f4db19a76615cb2f6a82
+  - enabled: 1
+    path: Assets/StudentWork/Scenes/TeamPerformance.unity
+    guid: 2aeebf23fd97c4dec8706f9b87ea8577
+  - enabled: 1
+    path: Assets/StudentWork/Scenes/P3SoloPractice.unity
+    guid: 3c3d78f1fac90497db9c15d27b24313d
+  - enabled: 1
+    path: Assets/StudentWork/Scenes/P1UpperBodyPractice.unity
+    guid: 02ccd53f4fe614ecb9e101c2d09852f2
+  - enabled: 1
+    path: Assets/StudentWork/Scenes/P2UpperBodyPractice.unity
+    guid: 69e696c5ad6c743cfaf3c9d36d89b3d8
+  - enabled: 1
+    path: Assets/StudentWork/Scenes/P3UpperBodyPractice.unity
+    guid: e739162ef52004525b41474e3c43ddc3
+  m_configObjects: {}
