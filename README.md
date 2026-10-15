@@ -40,7 +40,7 @@ Excluded on purpose (see `.gitignore`): Unity `Library/`, `Temp/`, `Logs/`, `Use
 Requirements: Git, Python 3.10 or newer, Unity Hub with Unity 6000.6.3f1, internet access.
 
 ```bash
-git clone https://github.com/xichen0806-spec/sushicat.git
+git clone https://github.com/xichen0912/sushicat.git
 cd sushicat
 python3 tools/restore_starter.py
 ```
