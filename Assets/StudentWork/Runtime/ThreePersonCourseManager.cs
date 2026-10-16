@@ -35,11 +35,12 @@ namespace StudentWork
         [Range(.05f, 1)] public float pickupFistConfidence = .55f;
         [Min(.05f)] public float pickupGestureHoldSeconds = .35f;
         [Header("Nearby P3 fist trigger (water and log)")]
-        [Tooltip("Within this distance of the basin/log, P3's closed right fist completes the stage directly.")]
+        [Tooltip("Within this distance of the basin/log, P3's green-box reach (or fist) completes the stage.")]
         [Min(1)] public float nearbyTriggerRadius = 10f;
-        [Tooltip("On: reaching nearbyTriggerRadius completes the water/log stage at once, no P3 fist needed. Off: P3 must clench the right fist there.")]
+        [Tooltip("Proximity course progression: pass the tree by proximity, catch up at the water/log, and complete the finish on entering its zone.")]
         public bool autoTriggerNearby = true;
-        [Tooltip("With auto trigger: if P3 does nothing, the stage completes once the elephant is this close (after the snap pulls it in).")]
+        [Tooltip("Off (default): water and log need P3's action. On: they also complete without P3 once the elephant is within autoTriggerRadius.")]
+        public bool completeWithoutP3 = false;
         [Min(.5f)] public float autoTriggerRadius = 4f;
         [Header("P3 touch zone (water and log)")]
         [Tooltip("Within nearbyTriggerRadius, P3 puts either wrist inside this camera-image box to trigger the water/log stage.")]
@@ -613,7 +614,7 @@ namespace StudentWork
         // Water/log trigger, checked within nearbyTriggerRadius of the anchor, in this order:
         //   1. P3 holds either wrist inside the on-screen touch zone for touchHoldSeconds;
         //   2. P3 holds a closed right fist for nearbyFistHoldSeconds;
-        //   3. auto: the elephant is within autoTriggerRadius (the snap pulls it there).
+        //   3. only if completeWithoutP3 is on: the elephant is within autoTriggerRadius.
         // P1/P2 readiness and a stopped elephant are not required.
         bool TryNearbyFist(Vector3 anchor, Vector3 position, ref float heldSeconds, float dt, string target, out string status)
         {
@@ -648,7 +649,7 @@ namespace StudentWork
             }
             else heldSeconds = 0;
 
-            if (autoTriggerNearby && distance <= autoTriggerRadius) { LastTriggerSource = "auto on arrival"; status = "Reached " + target + ": triggered."; return true; }
+            if (completeWithoutP3 && distance <= autoTriggerRadius) { LastTriggerSource = "auto on arrival"; status = "Reached " + target + ": triggered."; return true; }
 
             status = !p3Ready ? "Near " + target + ": P3 not detected, stand in the P3 region."
                 : TouchZoneOccupied ? "P3 hand in the green box, hold it..."
