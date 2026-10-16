@@ -46,3 +46,12 @@
 /Workshop/
 /output/
 /tools/generate_mapping_pdf.py
+
+# Local-only helpers, editor auto-backups and build screenshots (kept locally)
+/RestoreOffline.command
+/RepairUnityPermissions.command
+/Docs/TEST_LOG.csv
+/Assets/StudentWork/Scenes/TeamPerformance_Before*.unity
+/Assets/StudentWork/Scenes/TeamPerformance_Before*.unity.meta
+/Assets/_CityGen/screenshots/
+/Assets/_CityGen/screenshots.meta

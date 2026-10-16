@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/StudentWork/Scenes/UpperBodyThreePersonCourse_City.unity
+    guid: 047c7abc030404af3a040ff4280be817
+  - enabled: 1
     path: Assets/StudentWork/Scenes/UpperBodyThreePersonCourse.unity
     guid: 0d4bf26fde27f4db19a76615cb2f6a82
   - enabled: 1
