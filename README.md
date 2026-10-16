@@ -22,6 +22,22 @@ Contributions:
 - Three-person tracking problems and fixes: [Docs/THREE_PERSON_BUGS.md](Docs/THREE_PERSON_BUGS.md)
 - Python adaptation checks: [TrackingAdaptations/VERIFICATION.md](TrackingAdaptations/VERIFICATION.md)
 
+## Group reflection
+
+**Tested improvement: lighter tracking, fewer pauses.** Walking looked jerky because the tracker had slowed down, and Unity paused travel whenever a pose arrived too late. We launched the tracker without two models that do not affect control (the person-outline segmenter and the cup detector) and compared two real Play sessions before and after:
+
+| Measure (median) | Before | After |
+|---|---|---|
+| Pose updates per second | 3.1 | 6.9 |
+| Pose age when used | 0.45 s | 0.19 s |
+| Time paused as "stale" | 50% | 6% |
+
+We also relaxed the stale-pose limit from 0.45 s to 0.7 s in the same change, so part of the drop in pauses comes from that.
+
+**Remaining limitation: P1's hand leaving the frame stops the elephant.** When P1 lowers the left hand, it can drop out of frame, the wrist is no longer detected, and the safety check stops all travel at once. This paused travel in 19% of calibrated samples in the "after" session. P1 now sits further back and the status names the cause; a fuller fix would brake gently when only the hand is briefly lost.
+
+Full details: [Docs/REFLECTION.md](Docs/REFLECTION.md).
+
 ## Performance scene
 
 `Assets/StudentWork/Scenes/UpperBodyThreePersonCourse_City.unity`
