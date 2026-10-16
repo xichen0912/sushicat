@@ -12,7 +12,7 @@ Contributions:
 
 - **Xinru Lu**: early code experiments
 - **Ge Huang**: core code, code iteration
-- **Xi Chen**: city build, code refinement and polish
+- **Xi Chen**: city build, code refinement and polish, presentation slides
 
 ## Links
 
