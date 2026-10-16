@@ -1,64 +1,31 @@
-# 实际完成的搭建验证
+# Setup verification of the Python adaptations
 
-2026-10-07，在此电脑的 Python 3.14.8 arm64 虚拟环境中完成：
+Completed 2026-10-07 in a Python 3.14.8 arm64 virtual environment on this computer.
 
-- 109 项适配单元及回归测试全部通过；starter 原有 11 项 Python 测试也通过。测试不包含真实相机和 Gesture Recognizer 模型。
-- `extract_features`、`PerformerTracker`、`requested_count`、`encode_preview`
-  的 AST 与固定版本原始源码一致；原始 pose JSON 构造也一致。
-- 新的独立 `StablePerformerTracker` 已接入 main，未替换原始 tracker 定义。
-  合成位置序列复现原实现的三个问题：歧义后下一帧自动恢复；长时间
-  消失后复用旧位置；三人模式把第四名旁观者纳入初始角色并排除右侧
-  成员。新策略在初始人数不符时不分配，在歧义、额外人员或单个角色
-  跟踪间隙超过 2 秒后锁定；只有显式重新分配才能解锁。已验证检测顺序
-  改变、短暂缺失、各角色独立计时、锁定持久性和重置后的左到右分配。
-  计时使用可注入的单调时钟，测试没有等待真实时间或打开摄像头。
-- 用真实 `selfie_segmenter.tflite`（249,537 字节）调用独立
-  `ImageSegmenter.segment_for_video`，成功完成两次推理，并确认中间的
-  0.1 秒调用被 5 Hz 上限跳过。
-- 实际模型 API 的标签为 `['selfie']`，输出类别掩码为 uint8、形状
-  `(256, 256, 1)`；合成背景图输出 255，代表隐式背景。人物前景对应
-  类别索引 0，因此按 `mask == 0` 统计占比，不能按 `mask > 0` 判断前景。
-- MediaPipe 0.10.35 / OpenCV 4.14.0 / NumPy 2.5.3。日志显示 CPU XNNPACK
-  推理成功；无可用 GPU 上下文的提示没有妨碍此次测试。
+- All 109 adaptation unit and regression tests passed, and the starter's original 11 Python tests also passed. The tests do not use a real camera or the Gesture Recognizer model.
+- The ASTs of `extract_features`, `PerformerTracker`, `requested_count` and `encode_preview` match the pinned original source, and the original pose JSON construction is unchanged.
+- The new `StablePerformerTracker` is wired into `main` without replacing the original tracker. Synthetic position sequences reproduce three problems of the original: automatic recovery on the frame after an ambiguity, reuse of old positions after a long absence, and a fourth bystander included at three-person start-up (pushing out the rightmost member). The new policy assigns nothing when the start-up count is wrong, and locks after an ambiguity, an extra person or a per-role gap over 2 s; only an explicit reassignment unlocks it. Detection-order changes, short absences, independent per-role timers, lock persistence and left-to-right assignment after reset were all checked. Timing uses an injectable monotonic clock, so the tests neither wait in real time nor open a camera.
+- The real `selfie_segmenter.tflite` (249,537 bytes) ran two inferences through `ImageSegmenter.segment_for_video`, and a call 0.1 s later was skipped by the 5 Hz limit.
+- The model's labels are `['selfie']`; the category mask is uint8 with shape `(256, 256, 1)`. A synthetic background image returns 255, the implicit background. The person foreground is category 0, so the foreground share is counted as `mask == 0`, not `mask > 0`.
+- Versions: MediaPipe 0.10.35, OpenCV 4.14.0, NumPy 2.5.3. CPU XNNPACK inference succeeded; a "no GPU context" notice did not affect the test.
 
-完整合成测试记录在 `synthetic_smoke_result.json`。测试生成图片只有背景
-和一个色块，前景占比为 0.0%；这一数据不能用作多人互动、分割准确率、
-实时帧率或课程实验结果。
+The synthetic test record is `synthetic_smoke_result.json`. Its image holds only a background and one colour block, so the 0.0% foreground share is not evidence of multi-person interaction, segmentation accuracy, real-time frame rate or course results.
 
-本节 Python 验证未打开摄像头或运行 Unity，也未测试实际三人或四人。真人轮廓效果、
-角色控制、交叉遮挡、A/B 性能差异、录像和团队分工都仍需实际执行和记录。
+These Python checks did not open a camera, run Unity or involve real performers.
 
-MediaPipe SDK 曾输出一条失败的 Clearcut 遥测上传日志；适配代码本身没有
-任何摄像头图像上传功能，模型推理在本机执行，预览使用原有 localhost UDP。
-该日志属于依赖库行为，不应将搭建说明解读为已审计整个依赖库的所有网络行为。
+MediaPipe printed one failed Clearcut telemetry upload message. The adaptation code itself uploads no camera images; inference runs locally and the preview uses the existing localhost UDP. We have not audited every network behaviour of the dependency.
 
-## 三人握拳交互的合成验收
+## Synthetic three-person fist acceptance
 
-`tests/test_three_person_fist_acceptance.py` 是一个不打开摄像头的三人
-Play-through rehearsal。它构造 P1/P2/P3 的肩膀和手腕坐标，然后调用生产
-桥接使用的 `associate_gestures`，覆盖以下五个场景：三人同时握拳/张手、两
-人手腕在中点交叉、P2 短暂遮挡、开拳/握拳识别抖动，以及检测顺序从左到右
-变为右到左后的角色重分配。
-
-运行命令：
+`tests/test_three_person_fist_acceptance.py` is a camera-free three-person rehearsal. It builds shoulder and wrist coordinates for P1/P2/P3 and calls `associate_gestures`, the function the bridge uses in production, across five scenarios: all three closing and opening fists together, two wrists crossing at the midpoint, a brief occlusion of P2, open/closed jitter, and detection order flipping from left-to-right to right-to-left.
 
 ```bash
 cd TrackingAdaptations
 python3 -m unittest discover -s tests -p 'test_three_person_fist_acceptance.py'
 ```
 
-通过标准是 5 项测试全部通过。交叉中点会被保守地判为 `No fresh`，不会把
-P2 的手误分给 P1；清晰的下一帧会恢复 P2。短遮挡只清除缺失角色，不能沿用
-上一帧的闭拳信号；抖动序列只有最后连续三帧才满足模拟保持条件。检测顺序
-变化只改变输入列表顺序，不改变已经分配的 P1/P2/P3 角色。
+All five tests must pass. At the crossing midpoint the hand is conservatively reported as `No fresh` rather than giving P2's hand to P1, and the next clear frame restores P2. A short occlusion clears only the missing role and never reuses the previous closed-fist signal. In the jitter sequence only the last three consecutive frames satisfy the simulated hold. Changing the detection order changes only the input order, not the assigned roles.
 
-该测试证明的是坐标关联和数据包边界的确定性，不是 MediaPipe Gesture
-Recognizer 的真实识别率、摄像头帧率或 Unity Play 结果。真实三人验收仍需
-在 Unity 中打开 `UpperBodyThreePersonCourse.unity`，确认状态面板显示
-`gesture recognizer ready`，再用三人分别站在左/中/右位置重复这五个动作并
-记录日志。
+This proves deterministic coordinate association and packet boundaries, not the real recognition rate of the MediaPipe Gesture Recognizer, camera frame rate or Unity Play behaviour.
 
-运行时的 Gesture Recognizer 由 `FistGestureWorker` 单独线程负责：桥接主循环
-先发送姿态包，再提交最新的手部帧；模型下载和 MediaPipe 初始化也延迟到第一
-个已分配角色的后台任务。结果最多允许滞后三帧或 0.30 秒，身份 revision、
-槽位集合或显式重置变化都会使正在运行的旧任务失效。
+At runtime the Gesture Recognizer runs on its own `FistGestureWorker` thread: the bridge sends the pose packet first, then submits the newest hand frame. Model download and MediaPipe initialisation are deferred to the first background task for an assigned role. Results may lag by at most three frames or 0.30 s, and any change of identity revision, slot set or explicit reset invalidates an in-flight task.

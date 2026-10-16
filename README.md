@@ -19,7 +19,8 @@ Contributions:
 - Performance video (Drive): https://drive.google.com/file/d/1bnqCmk_K8COZDoil_Q_npeKBBZKt0xfz/view
 - Setup, mappings, recording and test record: [DIGIPHANT_SETUP.md](DIGIPHANT_SETUP.md)
 - Group reflection (tested improvement + remaining limitation): [Docs/REFLECTION.md](Docs/REFLECTION.md)
-- Earlier notes (Chinese): [three-person bug report](Docs/THREE_PERSON_BUGS_中文.md), [mapping](Docs/MAPPING_中文.md), [archived setup log](Docs/history/DIGIPHANT_SETUP_zh_2026-10-11.md)
+- Three-person tracking problems and fixes: [Docs/THREE_PERSON_BUGS.md](Docs/THREE_PERSON_BUGS.md)
+- Python adaptation checks: [TrackingAdaptations/VERIFICATION.md](TrackingAdaptations/VERIFICATION.md)
 
 ## Performance scene
 

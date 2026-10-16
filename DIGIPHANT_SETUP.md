@@ -1,6 +1,6 @@
 # DigiPhant setup and test record — team sushicat
 
-Last updated 2026-10-15. The earlier, more detailed setup log (Chinese, up to 2026-10-11) is archived in [Docs/history](Docs/history/DIGIPHANT_SETUP_zh_2026-10-11.md).
+Last updated 2026-10-15. Three-person tracking fixes are described in [Docs/THREE_PERSON_BUGS.md](Docs/THREE_PERSON_BUGS.md).
 
 ## Tested environment
 

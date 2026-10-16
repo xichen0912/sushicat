@@ -459,13 +459,13 @@ namespace CityGen.EditorTools
                 if (!(r is ParticleSystemRenderer) && !r.name.StartsWith("Plaza") && !r.name.StartsWith("Bench")
                     && !Inside(Box.From(r.bounds), basinBox.Grow(.01f))) problems.Add($"- Fountain/{r.name} leaves the original basin footprint");
             var report = new StringBuilder();
-            report.AppendLine("# CityGen 重叠检测").AppendLine();
-            report.AppendLine($"场景：`{scene.path}`，种子 {Seed}，建筑 {boxes.Count} 栋。").AppendLine();
-            report.AppendLine($"规则：建筑离道路中心线 ≥ {ctx.roadHalf + SidewalkWidth + FacadeSetback:0.0} m（半路宽 {ctx.roadHalf:0.0} + 人行道 {SidewalkWidth} + 退让 {FacadeSetback}）；"
-                + "不压 4 个触发区、4 个地标、保留树（含玩法树 Acacia 18）、大象起点、喷泉广场（各外扩 0.5–1 m）；建筑之间不重叠；喷泉在原水池 3.0 × 2.5 范围内。").AppendLine();
-            report.AppendLine(problems.Count == 0 ? "**结果：0 处重叠。**" : $"**结果：{problems.Count} 处问题：**");
+            report.AppendLine("# CityGen overlap check").AppendLine();
+            report.AppendLine($"Scene: `{scene.path}`, seed {Seed}, {boxes.Count} buildings.").AppendLine();
+            report.AppendLine($"Rules: buildings at least {ctx.roadHalf + SidewalkWidth + FacadeSetback:0.0} m from the road centreline (half road {ctx.roadHalf:0.0} + sidewalk {SidewalkWidth} + setback {FacadeSetback}); "
+                + "no overlap with the 4 trigger zones, 4 landmarks, kept trees (including gameplay tree Acacia 18), the elephant start or the fountain plaza (each grown by 0.5–1 m); no building overlaps another; the fountain stays within the original 3.0 × 2.5 basin.").AppendLine();
+            report.AppendLine(problems.Count == 0 ? "**Result: 0 overlaps.**" : $"**Result: {problems.Count} problems:**");
             foreach (var p in problems) report.AppendLine(p);
-            report.AppendLine().AppendLine("## 检查过的保护区");
+            report.AppendLine().AppendLine("## Protected areas checked");
             foreach (var (name, box) in ctx.keepouts) report.AppendLine($"- {name}: {box}");
             File.WriteAllText(ReportPath, report.ToString());
             AssetDatabase.ImportAsset(ReportPath);

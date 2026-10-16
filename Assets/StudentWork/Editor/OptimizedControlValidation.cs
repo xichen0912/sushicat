@@ -86,7 +86,7 @@ namespace StudentWork.Editor
                 var old = Frame(1.8f, age: .75f);
                 Check(!c.AcceptPacket(JsonUtility.ToJson(old), 102.3f), "A newly received old image must remain unavailable.");
                 c.ApplyControls(102.3f, .1f);
-                Check(loco.CurrentSpeed == 0 && c.LatestPoseAgeSeconds(102.3f) >= .74f && c.TravelInputSafetyStatus.Contains("过旧"),
+                Check(loco.CurrentSpeed == 0 && c.LatestPoseAgeSeconds(102.3f) >= .74f && c.TravelInputSafetyStatus.Contains("stale"),
                     "Late inference must pause immediately and report captured-age rejection.");
                 Accept(c, Frame(), 102.4f); c.ApplyControls(102.4f, .1f);
                 Check(loco.CurrentSpeed == 0 && c.TravelInputSafetyReady(102.4f), "A fresh neutral must safely recover from delayed input.");
@@ -103,7 +103,7 @@ namespace StudentWork.Editor
                     float time = 201 + i * .1f; Accept(c, Frame(scale: 1.4f, geometry: true), time); c.ApplyControls(time, .1f);
                     Check(loco.CurrentSpeed == 0, "Sustained distance scaling must never reverse the elephant.");
                 }
-                Check(!c.IsCalibrated && c.CalibrationResetReason.Contains("站距"), "Sustained distance change must require explicit recalibration.");
+                Check(!c.IsCalibrated && c.CalibrationResetReason.Contains("distance"), "Sustained distance change must require explicit recalibration.");
                 c.BeginCalibrationCountdown(202);
                 for (int i = 0; i < 7; i++) Accept(c, Frame(scale: 1.4f, geometry: true), 210.5f + i * .25f);
                 c.UpdateCalibrationCountdown(212);

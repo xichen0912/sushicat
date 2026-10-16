@@ -357,7 +357,7 @@ namespace StudentWork
                 PickupStatus = "Choose Team mode before picking up the log.";
                 return false;
             }
-            if (!TryNearbyFist(pickupLogTransform.position, elephantPosition, ref pickupGestureSeconds, dt, "木头", out string fistStatus))
+            if (!TryNearbyFist(pickupLogTransform.position, elephantPosition, ref pickupGestureSeconds, dt, "the log", out string fistStatus))
             {
                 PickupStatus = fistStatus;
                 return false;
@@ -386,7 +386,7 @@ namespace StudentWork
         {
             ResolvePickupReferences();
             if (!controller || controller.SoloRole != 3 || controller.inputMode != InputMode.Camera)
-            { PickupStatus = "选 Solo P3 和 Camera 后再开始单人捡木头测试。"; return; }
+            { PickupStatus = "Choose Solo P3 and Camera before starting the solo log test."; return; }
             if (!locomotion || !locomotion.travelRoot || !pickupLogTransform || !pickupTrunkTip)
             { PickupStatus = "Log test needs the elephant, the log and the trunk tip."; return; }
             RestorePickedUpLog();
@@ -401,7 +401,7 @@ namespace StudentWork
             locomotion.travelRoot.SetPositionAndRotation(spot,
                 facing.sqrMagnitude > .0001f ? Quaternion.LookRotation(facing, Vector3.up) : locomotion.travelRoot.rotation);
             soloLogPractice = true;
-            PickupStatus = "单人测试：右手张开，再握拳并保持，木头会被捡起来。";
+            PickupStatus = "Solo test: open the right hand, then clench and hold to pick up the log.";
         }
         public void StopSoloLogPractice()
         {
@@ -411,24 +411,24 @@ namespace StudentWork
         }
         void UpdateSoloLogPractice(float now, float dt)
         {
-            if (LogPickedUp) { PickupStatus = "成功：真实握拳识别，木头已被鼻子捡起。可点“放回木头”再测一次。"; return; }
+            if (LogPickedUp) { PickupStatus = "Success: a real fist was recognized and the trunk picked up the log. Click \"Put the log back\" to test again."; return; }
             int slot = controller.P3InputSlot;
             if (!controller.IsCalibrated)
-            { pickupGestureSeconds = 0; PickupStatus = "先点 Set neutral pose 完成校准。"; return; }
+            { pickupGestureSeconds = 0; PickupStatus = "Click Set neutral pose to calibrate first."; return; }
             if (!controller.IsTracked(slot, now))
-            { pickupGestureSeconds = 0; PickupStatus = "没识别到人：坐在 P3 区域，右手放在画面里。"; return; }
+            { pickupGestureSeconds = 0; PickupStatus = "No one detected: sit in the P3 region with the right hand in frame."; return; }
             if (!TryReadTrunkPickupFist(now, out bool closed, out float confidence))
-            { pickupGestureSeconds = 0; PickupStatus = "看不清右手：整只右手放进画面。握拳识别：" + controller.FistDetectorStatus; return; }
+            { pickupGestureSeconds = 0; PickupStatus = "Right hand unclear: keep the whole right hand in frame. Fist detector: " + controller.FistDetectorStatus; return; }
             if (!closed || confidence < Mathf.Clamp01(pickupFistConfidence))
             {
                 pickupGestureSeconds = 0;
-                PickupStatus = (closed ? "握拳了，但可信度 " : "右手张开中，可信度 ") + confidence.ToString("0.00")
-                    + "（需要握拳且 ≥ " + pickupFistConfidence.ToString("0.00") + "）";
+                PickupStatus = (closed ? "Fist closed, confidence " : "Right hand open, confidence ") + confidence.ToString("0.00")
+                    + " (need a closed fist with confidence >= " + pickupFistConfidence.ToString("0.00") + ")";
                 return;
             }
             pickupGestureSeconds += Mathf.Max(0, dt);
             if (pickupGestureSeconds < Mathf.Max(.05f, pickupGestureHoldSeconds))
-            { PickupStatus = "保持握拳… " + pickupGestureSeconds.ToString("0.00") + " / " + pickupGestureHoldSeconds.ToString("0.00") + " 秒"; return; }
+            { PickupStatus = "Keep the fist closed... " + pickupGestureSeconds.ToString("0.00") + " / " + pickupGestureHoldSeconds.ToString("0.00") + " s"; return; }
             AttachLogToTrunk();
         }
 
@@ -530,7 +530,7 @@ namespace StudentWork
                     if (WaterGateAllowed) WaterDwellSeconds += dt;
                     string waterFist = null;
                     if (Application.isPlaying && waterBasin
-                        && TryNearbyFist(waterBasin.position, position, ref waterFistSeconds, dt, "水池", out waterFist))
+                        && TryNearbyFist(waterBasin.position, position, ref waterFistSeconds, dt, "the water", out waterFist))
                     {
                         AcceptedTeamCupGestures++;
                         Advance(CourseStage.Log, "Water Interaction Complete (" + LastTriggerSource + "). Continue to the log.");
@@ -623,7 +623,7 @@ namespace StudentWork
             if (distance > nearbyTriggerRadius)
             {
                 heldSeconds = touchSeconds = 0;
-                status = "靠近" + target + "（还差 " + (distance - nearbyTriggerRadius).ToString("0.0") + " 单位进入触发范围）。";
+                status = "Approach " + target + " (" + (distance - nearbyTriggerRadius).ToString("0.0") + " units until the trigger range).";
                 return false;
             }
             float step = CourseZoneUtility.Finite(dt) && dt > 0 ? Mathf.Min(dt, .25f) : 0;
@@ -635,7 +635,7 @@ namespace StudentWork
             if (TouchZoneOccupied)
             {
                 touchSeconds += step;
-                if (touchSeconds >= Mathf.Max(.05f, touchHoldSeconds)) { LastTriggerSource = "P3 touch zone"; status = "P3 摸到绿色框，触发！"; return true; }
+                if (touchSeconds >= Mathf.Max(.05f, touchHoldSeconds)) { LastTriggerSource = "P3 touch zone"; status = "P3 reached into the green box: triggered!"; return true; }
             }
             else touchSeconds = 0;
 
@@ -644,16 +644,16 @@ namespace StudentWork
             if (fist)
             {
                 heldSeconds += step;
-                if (heldSeconds >= Mathf.Max(.05f, nearbyFistHoldSeconds)) { LastTriggerSource = "P3 fist"; status = "P3 握拳，触发！"; return true; }
+                if (heldSeconds >= Mathf.Max(.05f, nearbyFistHoldSeconds)) { LastTriggerSource = "P3 fist"; status = "P3 fist: triggered!"; return true; }
             }
             else heldSeconds = 0;
 
-            if (autoTriggerNearby && distance <= autoTriggerRadius) { LastTriggerSource = "auto on arrival"; status = "已到" + target + "，自动触发。"; return true; }
+            if (autoTriggerNearby && distance <= autoTriggerRadius) { LastTriggerSource = "auto on arrival"; status = "Reached " + target + ": triggered."; return true; }
 
-            status = !p3Ready ? "已到" + target + "附近：P3 未识别，站进 P3 区域。"
-                : TouchZoneOccupied ? "P3 手在绿色框里，保持一下…"
-                : "已到" + target + "附近：P3 把手伸进预览右上角的绿色框（或握右拳）即可触发"
-                    + (autoTriggerNearby ? "；不做动作，大象靠近后也会自动触发。" : "。");
+            status = !p3Ready ? "Near " + target + ": P3 not detected, stand in the P3 region."
+                : TouchZoneOccupied ? "P3 hand in the green box, hold it..."
+                : "Near " + target + ": P3 reaches into the green box at the top right of the preview (or clenches the right fist)"
+                    + ".";
             return false;
         }
         bool P3WristInTouchZone(float now)
@@ -837,8 +837,8 @@ namespace StudentWork
             if (GUILayout.Button("Restart course / return to start")) ResetCourse();
             if (showTestButtons)
             {
-                if (GUILayout.Button("测试：直接跳到喝水关 / Test water stage")) JumpToWaterForTesting();
-                if (GUILayout.Button("测试：直接跳到木头关 / Test log pickup")) JumpToLogForTesting();
+                if (GUILayout.Button("Test water stage")) JumpToWaterForTesting();
+                if (GUILayout.Button("Test log pickup")) JumpToLogForTesting();
             }
             if (GUILayout.Button("Save course results")) { SaveResults(); waterInteraction?.SaveResults(); }
             GUILayout.Label(SaveStatus, wrapped);
@@ -851,12 +851,12 @@ namespace StudentWork
             GUI.Box(box, GUIContent.none);
             GUILayout.BeginArea(new Rect(box.x + 10, box.y + 8, box.width - 20, box.height - 16));
             var wrapped = new GUIStyle(GUI.skin.label) { wordWrap = true, fontSize = 12 };
-            GUILayout.Label("单人捡木头测试（真摄像头，真握拳）", wrapped);
+            GUILayout.Label("Solo log pickup test (live camera, real fist)", wrapped);
             if (!soloLogPractice)
             {
-                if (GUILayout.Button("开始：把大象放到木头旁")) StartSoloLogPractice();
+                if (GUILayout.Button("Start: place the elephant at the log")) StartSoloLogPractice();
             }
-            else if (GUILayout.Button(LogPickedUp ? "放回木头，再测一次" : "结束测试，放回木头"))
+            else if (GUILayout.Button(LogPickedUp ? "Put the log back, test again" : "End test, put the log back"))
             {
                 bool again = LogPickedUp;
                 StopSoloLogPractice();

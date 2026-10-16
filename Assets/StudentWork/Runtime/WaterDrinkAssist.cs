@@ -307,7 +307,7 @@ namespace StudentWork
             var controller = water ? water.controller : null;
             if (controller && controller.inputMode == InputMode.TestSliders)
             {
-                string label = controller.testRightFistClosed ? "模拟握拳：已握拳（点一下松开）" : "模拟握拳：张开（点一下握拳）";
+                string label = controller.testRightFistClosed ? "Simulated fist: closed (click to open)" : "Simulated fist: open (click to close)";
                 if (GUI.Button(new Rect(Screen.width * .5f - 120, 96, 240, 30), label))
                 {
                     controller.testFistConfidence = Mathf.Max(controller.testFistConfidence, .9f);
@@ -316,9 +316,9 @@ namespace StudentWork
             }
             if (!captured) return;
             string text = snapStage == 2
-                ? (arrived ? "已停在木头旁：P3 把手伸进绿色框就能捡木头" : "正在自动靠近木头…P3 把手伸进绿色框就能直接捡")
-                : snapStage == 3 ? "正在自动进入终点…"
-                : (arrived ? "已停在水边：P3 把手伸进绿色框就能喝水" : "正在自动靠近水边…P3 把手伸进绿色框就能直接喝");
+                ? (arrived ? "At the log: P3 reaches into the green box to pick it up" : "Moving to the log... P3 can reach into the green box now")
+                : snapStage == 3 ? "Moving into the finish..."
+                : (arrived ? "At the water: P3 reaches into the green box to drink" : "Moving to the water... P3 can reach into the green box now");
             var style = new GUIStyle(GUI.skin.box) { wordWrap = true, fontSize = 14 };
             GUI.Box(new Rect(Screen.width * .5f - 230, 44, 460, 46), text, style);
         }

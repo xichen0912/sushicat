@@ -27,3 +27,22 @@
 # Copyrighted reference images and music (not needed to reconstruct the scene)
 /Assets/_Reference/
 /Assets/_Reference.meta
+
+# Superseded Chinese notes and the separate Part 1 workshop (kept locally, not part of this submission)
+/Docs/history/
+/Docs/MAPPING_*.md
+/Docs/THREE_PERSON_BUGS_*.md
+/Docs/REHEARSAL_*.md
+/Docs/JOURNAL_*.md
+/Docs/SETUP_VERIFICATION.md
+/Docs/RECONSTRUCTION.md
+/UNITY_INSTALL_STATUS.md
+/Assets/StudentWork/README_*.md
+/Assets/StudentWork/README_*.md.meta
+/Assets/_CityGen/overlap_report.md
+/Assets/_CityGen/overlap_report.md.meta
+/Assets/_CityGen/scene_report.md
+/Assets/_CityGen/scene_report.md.meta
+/Workshop/
+/output/
+/tools/generate_mapping_pdf.py

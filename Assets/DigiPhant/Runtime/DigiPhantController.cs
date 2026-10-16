@@ -144,7 +144,7 @@ namespace DigiPhant
         public CameraTrackingDiagnostics LatestTrackingDiagnostics { get; private set; }
         public int TrackingFrameSequence { get; private set; }
         public int FreshPoseRevision { get; private set; }
-        public string TravelInputSafetyStatus { get; private set; } = "等待校准";
+        public string TravelInputSafetyStatus { get; private set; } = "Waiting for calibration";
         [Min(.15f)] public float maximumPoseAgeSeconds = .45f;
         [Range(.08f, .4f)] public float standingScaleTolerance = .18f;
         [Range(2, 5)] public int stableHandSamples = 3;
@@ -434,7 +434,7 @@ namespace DigiPhant
             CalibrationRevision++;
             CalibrationResetReason = reason;
             TrackingFrameSequence = 0; lastPacketReceived = -1000; captureAgeAtReceipt = 0; hasCaptureAge = false;
-            ResetSampleGuards(); TravelInputSafetyStatus = "等待校准"; poseRejected = false;
+            ResetSampleGuards(); TravelInputSafetyStatus = "Waiting for calibration"; poseRejected = false;
             Array.Clear(geometry, 0, geometry.Length);
             Array.Clear(neutralGeometry, 0, neutralGeometry.Length);
             ClearCups();
@@ -546,7 +546,7 @@ namespace DigiPhant
                 Array.Clear(geometry, 0, geometry.Length);
                 ClearCups();
                 poseRejected = true;
-                TravelInputSafetyStatus = "相机画面过旧，已暂停；等待新的识别画面";
+                TravelInputSafetyStatus = "Camera frames are stale; travel paused until fresh poses arrive";
                 TrackingStatus = TravelInputSafetyStatus;
                 lastPacketReceived = now; captureAgeAtReceipt = frame.captureAgeSeconds; hasCaptureAge = true;
                 return false;
@@ -799,18 +799,18 @@ namespace DigiPhant
         {
             if (!upperBodyTeamMode || inputMode != InputMode.Camera || SoloRole == 2 || SoloRole == 3) return true;
             if (poseRejected || hasCaptureAge && LatestPoseAgeSeconds(now) > maximumPoseAgeSeconds)
-            { TravelInputSafetyStatus = "相机画面过旧，已暂停；等待新的识别画面"; return false; }
-            if (!IsCalibrated) { TravelInputSafetyStatus = "需要重新校准：保持舒服的左手停止姿势"; return false; }
+            { TravelInputSafetyStatus = "Camera frames are stale; travel paused until fresh poses arrive"; return false; }
+            if (!IsCalibrated) { TravelInputSafetyStatus = "Recalibration needed: hold a comfortable left-hand stop pose"; return false; }
             if (distanceBlocked) return false;
             if (handBlocked[0, 0])
             {
-                TravelInputSafetyStatus = handMissing[0, 0] ? "P1 左手没识别到（手放太低出画面或被挡住），已暂停；左手保持在画面里"
-                    : "P1 左手位置突然变化，已暂停；请稳定保持动作";
+                TravelInputSafetyStatus = handMissing[0, 0] ? "P1 left hand not detected (too low, out of frame or hidden); paused. Keep the left hand in frame"
+                    : "P1 left hand jumped suddenly; paused. Hold the movement steady";
                 return false;
             }
             if (!IsMovementVisible(1, Movement.LeftHandHeight, now))
-            { TravelInputSafetyStatus = "P1 左手不可用，已暂停；请让肩膀和左手完整入镜"; return false; }
-            TravelInputSafetyStatus = "输入稳定；保持校准时的站距"; return true;
+            { TravelInputSafetyStatus = "P1 left hand unavailable; paused. Keep shoulders and left hand fully in frame"; return false; }
+            TravelInputSafetyStatus = "Input stable; keep the calibrated distance"; return true;
         }
         void ResetSampleGuards()
         {
@@ -827,7 +827,7 @@ namespace DigiPhant
                 handGuards[slot, hand] = new UpperBodySampleGuard();
                 handGuards[slot, hand].Seed(0, now);
             }
-            TravelInputSafetyStatus = "输入稳定；保持校准时的站距";
+            TravelInputSafetyStatus = "Input stable; keep the calibrated distance";
         }
         void UpdateSampleGuards(float now)
         {
@@ -840,10 +840,10 @@ namespace DigiPhant
                 distanceBlocked = changed;
                 if (changed)
                 {
-                    TravelInputSafetyStatus = "P1 站距或肩部朝向变化较大，已暂停；回到原站位或重新校准";
+                    TravelInputSafetyStatus = "P1 distance or shoulder angle changed a lot; paused. Return to the calibrated spot or recalibrate";
                     if (scaleEvidenceSamples++ == 0) scaleEvidenceStarted = now;
                     if (scaleEvidenceSamples >= 3 && now - scaleEvidenceStarted >= .2f)
-                    { InvalidateCalibration("P1 站距或肩部朝向变化较大，请重新校准"); return; }
+                    { InvalidateCalibration("P1 distance or shoulder angle changed a lot; please recalibrate"); return; }
                 }
                 else scaleEvidenceSamples = 0;
             }
@@ -1074,16 +1074,16 @@ namespace DigiPhant
             Label("DIGIPHANT | collective digital twin");
             if (upperBodyTeamMode)
             {
-                Label("三人上半身 | 左侧 P1 速度/四腿；中间 P2 转向；右侧 P3 头/鼻/耳");
+                Label("Three-person upper body | left P1 speed/legs; middle P2 steering; right P3 head/trunk/ears");
                 int role = GUILayout.Toolbar(SoloRole, new[] { "Team", "Solo P1", "Solo P2", "Solo P3" });
                 if (role != SoloRole) SetSoloRolePractice(role);
                 if (SoloRole == 0)
                 {
-                    var seating = (TeamSeats)GUILayout.Toolbar((int)TeamSeating, new[] { "三人", "两人 P1+P2 开车", "两人 P1+P3 水/木头" });
+                    var seating = (TeamSeats)GUILayout.Toolbar((int)TeamSeating, new[] { "Three", "Two: P1+P2 drive", "Two: P1+P3 water/log" });
                     if (seating != TeamSeating) SetTeamSeating(seating);
-                    if (TeamSeating == TeamSeats.P1P3) Label("P1+P3：P2 位置空着，大象只能直走；用来喝水和捡木头。");
+                    if (TeamSeating == TeamSeats.P1P3) Label("P1+P3: the P2 seat is empty, so the elephant only walks straight; use this for water and log.");
                 }
-                Label("P1：左手慢慢抬高前进，回校准高度停止，明显下压并保持才后退。P2：自己的右肩下倾左转，左肩下倾右转。P3：小幅转头，右手抬高卷鼻，左臂伸展开耳。");
+                Label("P1: raise the left hand slowly to walk, return to the calibrated height to stop, hold it clearly lower to reverse. P2: tilt your shoulders the way you want to turn. P3: turn the head slightly, raise the right hand to curl the trunk, extend the left arm to open the ears.");
             }
             else
             {
@@ -1111,20 +1111,20 @@ namespace DigiPhant
                 if (LatestTrackingDiagnostics != null)
                 {
                     var diagnostic = LatestTrackingDiagnostics;
-                    Label((diagnostic.regionalTracking ? "三区独立识别 / 3 STANDING REGIONS" : "GLOBAL TRACKING") + " | detected " + diagnostic.rawDetected
+                    Label((diagnostic.regionalTracking ? "3 STANDING REGIONS" : "GLOBAL TRACKING") + " | detected " + diagnostic.rawDetected
                         + " | candidates " + diagnostic.candidatePeople + " | shoulders ready " + diagnostic.validPeople
                         + " | assigned " + diagnostic.assignedPeople);
                     if (!string.IsNullOrEmpty(diagnostic.trackerStatus))
                         Label("Tracker: " + diagnostic.trackerStatus);
                     if (diagnostic.trackerAmbiguous)
-                        Label("角色分配存在歧义；请停止移动、恢复固定站位并点击 Reassign people。\nTracker identity is ambiguous; stop, restore the marked positions, then reassign people.");
+                        Label("Tracker identity is ambiguous; stop, restore the marked positions, then reassign people.");
                     Label("Capture " + diagnostic.captureWidth + " x " + diagnostic.captureHeight + " | "
                         + diagnostic.cameraFps.ToString("0.0") + " tracking fps | pose " + diagnostic.poseInferenceMs.ToString("0") + " ms");
                     if (!string.IsNullOrEmpty(diagnostic.rejectionReasons)) Label(diagnostic.rejectionReasons);
-                    if (diagnostic.cameraFps > 0 && diagnostic.cameraFps < 8) Label("追踪刷新较慢，请放慢动作；后退会等待更多新画面。");
+                    if (diagnostic.cameraFps > 0 && diagnostic.cameraFps < 8) Label("Tracking is slow: move gently; reversing waits for more fresh frames.");
                 }
                 float poseAge = LatestPoseAgeSeconds(Time.realtimeSinceStartup);
-                if (poseAge >= 0) Label("识别画面年龄 " + poseAge.ToString("0.00") + " 秒");
+                if (poseAge >= 0) Label("Pose age " + poseAge.ToString("0.00") + " s");
                 Label(TravelInputSafetyStatus);
                 if (TryReadMovement(1, Movement.LeftHandHeight, Time.realtimeSinceStartup, out float hand))
                     Label("P1 hand from neutral: " + hand.ToString("+0.00;-0.00;0.00") + " | calibrated scale " + NeutralShoulderWidth(1).ToString("0.000"));
@@ -1132,14 +1132,14 @@ namespace DigiPhant
                     : "Camera setup: run SetupCamera.py in the project folder. Solo practice requires exactly one visible person.");
                 for (int i = 1; i <= performerCount; i++)
                 {
-                    if (!IsRoleSeatActive(i)) { Label("P" + i + " · 两人模式未使用 / not used in two-person team"); continue; }
+                    if (!IsRoleSeatActive(i)) { Label("P" + i + " · not used in two-person team"); continue; }
                     float now = Time.realtimeSinceStartup;
                     bool tracked = IsTracked(i, now);
                     bool ready = IsPerformerInputReady(i, now, out string missing);
-                    Label((SoloRole > 0 ? "P" + SoloRole + " 单人练习 (input 1)" : "P" + i) + (!tracked ? " · 未识别 / waiting / lost" : ready
-                        ? " · 已识别、动作可用 / inputs ready" : " · 已识别，但动作不可用：" + missing));
+                    Label((SoloRole > 0 ? "P" + SoloRole + " solo practice (input 1)" : "P" + i) + (!tracked ? " · waiting / lost" : ready
+                        ? " · inputs ready" : " · tracked, but inputs not ready: " + missing));
                 }
-                if (!IsCalibrated) Label("请在舒服的停止姿势下校准，完成后保持站距。");
+                if (!IsCalibrated) Label("Calibrate in a comfortable stop pose, then keep your distance.");
                 if (CalibrationPending)
                 {
                     if (CalibrationWaiting)
